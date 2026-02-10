@@ -1,5 +1,6 @@
 import User from "../model/User.model.js";
 import jwt from "jsonwebtoken";
+import uploadOnCloudinary from "../config/cloudinary.js";
 
 const options = {
   httpOnly: true,
@@ -176,6 +177,85 @@ const loginUser = async (req, res) => {
     return res.status(500).json({
       message: "We're having trouble logging you in. Please try again shortly.",
       success: false,
+    });
+  }
+};
+
+const updateProfile = async (req, res) => {
+  try {
+    const { userName } = req.body;
+    const profilePic = req.file;
+    const userId = req.user._id;
+
+    if (!userName || !profilePic) {
+      return res
+        .status(400)
+        .json({ message: "At least one field is required to update profile" });
+    }
+
+    const updatedData = {};
+    if (userName) {
+      updatedData.userName = userName;
+    }
+
+    if (profilePic) {
+      const uploadResult = await uploadOnCloudinary(profilePic.path);
+      if (!uploadResult) {
+        return res
+          .status(400)
+          .json({
+            message:
+              "We couldn't upload your photo right now. Please try again.",
+          });
+      }
+      updatedData.profilePic = uploadResult.secure_url;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(userId, updatedData, {
+      new: true,
+      runValidators: true,
+    }).select(" -password -refreshToken");
+
+    return res.status(200).json({
+      user: updatedUser,
+      success: true,
+      message: "Your profile has been updated successfully!",
+    });
+  } catch (error) {
+    console.log("Error Upadating Profile:", error);
+    return res.status(500).json({
+      success: false,
+      message:
+        "Something went wrong while saving your changes. Please try again later.",
+    });
+  }
+};
+
+const logoutUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ 
+        success: false,
+        message: "We couldn't find your account information."
+     });
+    }
+
+    user.refreshToken = null;
+    await user.save({ validateBeforeSave: false });
+    return res
+      .status(200)
+      .clearCookie("accessToken", options)
+      .clearCookie("refreshToken", options)
+      .json({
+        success: true,
+        message: "You have been logged out successfully. See you soon!",
+      });
+  } catch (error) {
+    console.error("Error logging out user:", error);
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred during logout. Please try again.",
     });
   }
 };
