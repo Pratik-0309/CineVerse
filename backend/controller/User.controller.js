@@ -86,5 +86,98 @@ const refreshAccessToken = async (req, res) => {
   }
 };
 
+const registerUser = async (req, res) => {
+  try {
+    const { userName, email, password } = req.body;
+    if (!userName || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Please fill in all required fields.",
+      });
+    }
 
-export {refreshAccessToken};
+    const existUser = await User.findOne({ email: email });
+    if (existUser) {
+      return res.status(409).json({
+        message: "An account with this email already exists.",
+        success: false,
+      });
+    }
+
+    const user = await User.create({
+      userName,
+      email,
+      password,
+    });
+
+    const { accessToken, refreshToken } = generateAccessRefreshToken(user._id);
+
+    return res
+      .status(201)
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", refreshToken, options)
+      .json({
+        message: "Welcome! Your account has been created successfully.",
+        user,
+        success: true,
+      });
+  } catch (error) {
+    console.log("Registration Error:", error);
+    return res.status(500).json({
+      message: "Something went wrong on our end. Please try again later",
+      success: false,
+    });
+  }
+};
+
+const loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide both email and password.",
+      });
+    }
+
+    const user = await User.findOne({ email: email });
+    if (!user) {
+      return res.json({
+        message: "Invalid email or password. Please try again",
+        success: false,
+      });
+    }
+
+    const isCorrectPassword = await user.matchPassword(password);
+    if (!isCorrectPassword) {
+      return res.json({
+        message: "Invalid Credentials",
+        success: false,
+      });
+    }
+
+    const { accessToken, refreshToken } = generateAccessRefreshToken(user._id);
+
+    const loggedInUser = await User.findById(user._id).select(
+      " -password -refreshToken",
+    );
+
+    return res
+      .status(200)
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", refreshToken, options)
+      .json({
+        message: `Welcome back, ${loggedInUser.userName}!`,
+        user: loggedInUser,
+        success: true,
+      });
+  } catch (error) {
+    console.error("Login Error:", error);
+    return res.status(500).json({
+      message: "We're having trouble logging you in. Please try again shortly.",
+      success: false,
+    });
+  }
+};
+
+export { refreshAccessToken, registerUser, loginUser };
