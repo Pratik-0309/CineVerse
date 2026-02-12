@@ -11,6 +11,19 @@ const watchlistSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    title: {
+      type: String,
+      required: true,
+    },
+    posterPath: {
+      type: String,
+    },
+    releaseDate: {
+      type: String,
+    },
+    voteAverage: {
+      type: Number,
+    },
   },
   { timestamps: true },
 );
