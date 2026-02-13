@@ -262,6 +262,108 @@ const castAndCrews = async (req, res) => {
   }
 };
 
+const MovieTrailer = async (req, res) => {
+  try {
+    const {movieId} = req.params;
+    const { data } = await axios.get(`${TMBD_URL}/movie/${movieId}/videos`, {
+      headers: {
+        Authorization: `Bearer ${process.env.TMBD_API_KEY}`,
+      },
+    });
+
+    const result = data.results;
+    const officialTrailer = result.find(
+      (vid) => vid.type === "Trailer" && vid.official === true
+    )
+
+    const finalTrailer = officialTrailer || result.find((vid) => vid.type === "Trailer");
+
+    if (data) {
+      return res.status(201).json({
+        message: "Movie Trailer fetched Successfully",
+        trailer: finalTrailer,
+        youtubeUrl: `https://www.youtube.com/watch?v=${finalTrailer.key}`,
+        success: true,
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Failed to fetch Movie Trailer.",
+      success: false,
+    });
+  }
+};
+
+const similarMovies = async (req, res) => {
+  try {
+    const {movieId} = req.params;
+    const { data } = await axios.get(`${TMBD_URL}/movie/${movieId}/similar`, {
+      headers: {
+        Authorization: `Bearer ${process.env.TMBD_API_KEY}`,
+      },
+    });
+
+    const movies = data.results;
+    if(!movies || movies.length === 0){
+      return res.status(200).json({
+        message: "No similar movie found",
+        success: false,
+        movies
+      })
+    }
+
+    if (data) {
+      return res.status(201).json({
+        message: "Similar Movie fetched Successfully",
+        movies,
+        success: true,
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Failed to fetch Similar Movie.",
+      success: false,
+    });
+  }
+};
+
+const RecommendedMovies = async (req, res) => {
+  try {
+    const {movieId} = req.params;
+    const { data } = await axios.get(`${TMBD_URL}/movie/${movieId}/recommendations`, {
+      headers: {
+        Authorization: `Bearer ${process.env.TMBD_API_KEY}`,
+      },
+    });
+
+    const recommendations = data.results;
+    if (!recommendations || recommendations.length === 0) {
+      return res.status(200).json({
+        message: "No recommended movies found",
+        movies: [],
+        success: true,
+      });
+    }
+
+    if (data) {
+      return res.status(200).json({
+        message: "Recommended Movie fetched Successfully",
+        movies: recommendations,
+        success: true,
+      });
+    }
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Failed to fetch Recommended Movie.",
+      success: false,
+    });
+  }
+};
+
 
 export {
   trendingMoviesDaily,
@@ -273,5 +375,8 @@ export {
   searchMovies,
   searchActors,
   movieDetails,
-  castAndCrews
+  castAndCrews,
+  MovieTrailer,
+  similarMovies,
+  RecommendedMovies
 };
