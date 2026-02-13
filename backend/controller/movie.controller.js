@@ -146,6 +146,122 @@ const nowPlayingMovies = async (req, res) => {
   }
 };
 
+const searchMovies = async (req, res) => {
+  try {
+    const { query } = req.body;
+
+    if(!query){
+      return res.status(400).json({
+        message: "Search query is required",
+        success: false,
+      });
+    }
+
+    const { data } = await axios.get(`${TMBD_URL}/search/multi?query=${query}`, {
+      headers: {
+        Authorization: `Bearer ${process.env.TMBD_API_KEY}`,
+      },
+    });
+
+    if (data) {
+      return res.status(201).json({
+        message: "Movies fetched Successfully",
+        movies: data.results,
+        success: true,
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Failed to fetch Movies",
+      success: false,
+    });
+  }
+};
+
+const searchActors = async (req, res) => {
+  try {
+    const { query } = req.body;
+
+    if(!query){
+      return res.status(400).json({
+        message: "Search query is required",
+        success: false,
+      });
+    }
+
+    const { data } = await axios.get(`${TMBD_URL}/search/multi?query=${query}`, {
+      headers: {
+        Authorization: `Bearer ${process.env.TMBD_API_KEY}`,
+      },
+    });
+
+    if (data) {
+      return res.status(201).json({
+        message: "Actors fetched Successfully",
+        movies: data.results,
+        success: true,
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Failed to fetch Actors",
+      success: false,
+    });
+  }
+};
+
+const movieDetails = async (req, res) => {
+  try {
+    const {movieId} = req.params;
+    const { data } = await axios.get(`${TMBD_URL}/movie/${movieId}`, {
+      headers: {
+        Authorization: `Bearer ${process.env.TMBD_API_KEY}`,
+      },
+    });
+
+    if (data) {
+      return res.status(201).json({
+        message: "Movie Details fetched Successfully",
+        movies: data,
+        success: true,
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Failed to fetch Movie Details ",
+      success: false,
+    });
+  }
+};
+
+const castAndCrews = async (req, res) => {
+  try {
+    const {movieId} = req.params;
+    const { data } = await axios.get(`${TMBD_URL}/movie/${movieId}/credits`, {
+      headers: {
+        Authorization: `Bearer ${process.env.TMBD_API_KEY}`,
+      },
+    });
+
+    if (data) {
+      return res.status(201).json({
+        message: "Cast snd Crew Details fetched Successfully",
+        movies: data,
+        success: true,
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Failed to fetch Movie Cast snd Crew Details ",
+      success: false,
+    });
+  }
+};
+
 
 export {
   trendingMoviesDaily,
@@ -153,5 +269,9 @@ export {
   popularMovies,
   topRatedMovies,
   upcomingMovies,
-  nowPlayingMovies
+  nowPlayingMovies,
+  searchMovies,
+  searchActors,
+  movieDetails,
+  castAndCrews
 };
