@@ -1,14 +1,12 @@
-import axios from "axios";
-
-const TMBD_URL = "https://api.themoviedb.org/3";
+import { getTrendingDaily, getTrendingWeekly, getPopularMovies, getTopRatedMovies,
+  getUpcomingMovies, getNowPlayingMovies, searchMoviesService, searchActorsService,
+  getMovieDetailsService, getCastAndCrewService, getMovieImagesService, getMovieVideosService,
+  getSimilarMoviesService, getRecommendationsService, getActorDetailsService, getWatchProvidersService
+ } from "../services/tmbdService.js";
 
 const trendingMoviesDaily = async (req, res) => {
   try {
-    const { data } = await axios.get(`${TMBD_URL}/trending/movie/day`, {
-      headers: {
-        Authorization: `Bearer ${process.env.TMBD_API_KEY}`,
-      },
-    });
+    const { data } = await getTrendingDaily();
 
     if (data) {
       return res.status(200).json({
@@ -28,11 +26,7 @@ const trendingMoviesDaily = async (req, res) => {
 
 const trendingMoviesWeekly = async (req, res) => {
   try {
-    const { data } = await axios.get(`${TMBD_URL}/trending/movie/week`, {
-      headers: {
-        Authorization: `Bearer ${process.env.TMBD_API_KEY}`,
-      },
-    });
+    const { data } = await getTrendingWeekly();
 
     if (data) {
       return res.status(200).json({
@@ -52,11 +46,7 @@ const trendingMoviesWeekly = async (req, res) => {
 
 const popularMovies = async (req, res) => {
   try {
-    const { data } = await axios.get(`${TMBD_URL}/movie/popular`, {
-      headers: {
-        Authorization: `Bearer ${process.env.TMBD_API_KEY}`,
-      },
-    });
+    const { data } = await getPopularMovies();
 
     if (data) {
       return res.status(200).json({
@@ -76,11 +66,7 @@ const popularMovies = async (req, res) => {
 
 const topRatedMovies = async (req, res) => {
   try {
-    const { data } = await axios.get(`${TMBD_URL}/movie/top_rated`, {
-      headers: {
-        Authorization: `Bearer ${process.env.TMBD_API_KEY}`,
-      },
-    });
+    const { data } = await getTopRatedMovies();
 
     if (data) {
       return res.status(200).json({
@@ -100,11 +86,7 @@ const topRatedMovies = async (req, res) => {
 
 const upcomingMovies = async (req, res) => {
   try {
-    const { data } = await axios.get(`${TMBD_URL}/movie/upcoming`, {
-      headers: {
-        Authorization: `Bearer ${process.env.TMBD_API_KEY}`,
-      },
-    });
+    const { data } = await getUpcomingMovies();
 
     if (data) {
       return res.status(200).json({
@@ -124,11 +106,7 @@ const upcomingMovies = async (req, res) => {
 
 const nowPlayingMovies = async (req, res) => {
   try {
-    const { data } = await axios.get(`${TMBD_URL}/movie/now_playing`, {
-      headers: {
-        Authorization: `Bearer ${process.env.TMBD_API_KEY}`,
-      },
-    });
+    const { data } = await getNowPlayingMovies();
 
     if (data) {
       return res.status(200).json({
@@ -157,14 +135,7 @@ const searchMovies = async (req, res) => {
       });
     }
 
-    const { data } = await axios.get(
-      `${TMBD_URL}/search/multi?query=${query}`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.TMBD_API_KEY}`,
-        },
-      },
-    );
+    const { data } = await searchMoviesService(query);
 
     if (data) {
       return res.status(200).json({
@@ -193,19 +164,12 @@ const searchActors = async (req, res) => {
       });
     }
 
-    const { data } = await axios.get(
-      `${TMBD_URL}/search/multi?query=${query}`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.TMBD_API_KEY}`,
-        },
-      },
-    );
+    const { data } = await searchActorsService(query);
 
     if (data) {
       return res.status(200).json({
         message: "Actors fetched Successfully",
-        movies: data.results,
+        actors: data.results,
         success: true,
       });
     }
@@ -221,11 +185,7 @@ const searchActors = async (req, res) => {
 const movieDetails = async (req, res) => {
   try {
     const { movieId } = req.params;
-    const { data } = await axios.get(`${TMBD_URL}/movie/${movieId}`, {
-      headers: {
-        Authorization: `Bearer ${process.env.TMBD_API_KEY}`,
-      },
-    });
+    const { data } = await getMovieDetailsService(movieId);
 
     if (data) {
       return res.status(200).json({
@@ -246,11 +206,7 @@ const movieDetails = async (req, res) => {
 const castAndCrews = async (req, res) => {
   try {
     const { movieId } = req.params;
-    const { data } = await axios.get(`${TMBD_URL}/movie/${movieId}/credits`, {
-      headers: {
-        Authorization: `Bearer ${process.env.TMBD_API_KEY}`,
-      },
-    });
+    const { data } = await getCastAndCrewService(movieId);
 
     if (data) {
       return res.status(200).json({
@@ -262,7 +218,7 @@ const castAndCrews = async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(500).json({
-      message: "Failed to fetch Movie Cast snd Crew Details ",
+      message: "Failed to fetch Movie Cast and Crew Details ",
       success: false,
     });
   }
@@ -271,11 +227,7 @@ const castAndCrews = async (req, res) => {
 const MovieTrailer = async (req, res) => {
   try {
     const { movieId } = req.params;
-    const { data } = await axios.get(`${TMBD_URL}/movie/${movieId}/videos`, {
-      headers: {
-        Authorization: `Bearer ${process.env.TMBD_API_KEY}`,
-      },
-    });
+    const { data } = await getMovieVideosService(movieId);
 
     const result = data.results;
     const officialTrailer = result.find(
@@ -305,11 +257,7 @@ const MovieTrailer = async (req, res) => {
 const similarMovies = async (req, res) => {
   try {
     const { movieId } = req.params;
-    const { data } = await axios.get(`${TMBD_URL}/movie/${movieId}/similar`, {
-      headers: {
-        Authorization: `Bearer ${process.env.TMBD_API_KEY}`,
-      },
-    });
+    const { data } = await getSimilarMoviesService(movieId);
 
     const movies = data.results;
     if (!movies || movies.length === 0) {
@@ -339,14 +287,7 @@ const similarMovies = async (req, res) => {
 const RecommendedMovies = async (req, res) => {
   try {
     const { movieId } = req.params;
-    const { data } = await axios.get(
-      `${TMBD_URL}/movie/${movieId}/recommendations`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.TMBD_API_KEY}`,
-        },
-      },
-    );
+    const { data } = await getRecommendationsService(movieId);
 
     const recommendations = data.results;
     if (!recommendations || recommendations.length === 0) {
@@ -376,11 +317,7 @@ const RecommendedMovies = async (req, res) => {
 const movieImages = async (req, res) => {
   try {
     const { movieId } = req.params;
-    const { data } = await axios.get(`${TMBD_URL}/movie/${movieId}/images`, {
-      headers: {
-        Authorization: `Bearer ${process.env.TMBD_API_KEY}`,
-      },
-    });
+    const { data } = await getMovieImagesService(movieId);
 
     const images = data.backdrops;
     const finalImages = images.filter(
@@ -406,14 +343,7 @@ const movieImages = async (req, res) => {
 const actorDetails = async (req, res) => {
   try {
     const { actorId } = req.params;
-    const { data } = await axios.get(
-      `${TMBD_URL}/person/${actorId}/movie_credits`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.TMBD_API_KEY}`,
-        },
-      },
-    );
+    const { data } = await getActorDetailsService(actorId);
 
     if (data) {
       return res.status(200).json({
@@ -434,14 +364,7 @@ const actorDetails = async (req, res) => {
 const watchProviders = async (req, res) => {
   try {
     const { movieId } = req.params;
-    const { data } = await axios.get(
-      `${TMBD_URL}/movie/${movieId}/watch/providers`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.TMBD_API_KEY}`,
-        },
-      },
-    );
+    const { data } = await getWatchProvidersService(movieId);
 
     const indiaProviders = data.results?.IN;
 
