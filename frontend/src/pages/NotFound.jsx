@@ -1,5 +1,12 @@
+import { useState } from "react";
+import Loader from "../components/Loader";
 
 const NotFound = () => {
+
+  const [loading, setLoading] = useState(true);
+  
+    if (loading) return <Loader />;
+
   return (
     <div className="flex bg-black flex-col items-center justify-center text-sm max-md:px-4 py-20 pt-32 min-h-screen">
       <h1 className="text-5xl md:text-5xl font-bold bg-linear-to-r from-white to-gray-500 bg-clip-text text-transparent">
