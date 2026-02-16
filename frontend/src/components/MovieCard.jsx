@@ -1,10 +1,13 @@
 import React from 'react';
+import {  useNavigate } from 'react-router-dom';
 
 const MovieCard = ({ movie }) => {
+  const navigate = useNavigate();
   const posterUrl = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
 
   return (
-    <div className="group cursor-pointer w-full">
+    <div onClick={() => navigate(`/movie/${movie.id}`)}
+    className="group cursor-pointer w-full">
       <div className="relative aspect-2/3 w-full rounded-xl overflow-hidden mb-3 shadow-lg transition-all duration-300 group-hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]">
         <img 
           src={posterUrl} 
