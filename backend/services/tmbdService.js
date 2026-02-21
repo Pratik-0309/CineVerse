@@ -32,9 +32,6 @@ export const getNowPlayingMovies = () =>
 export const searchMoviesService = (query) =>
   tmdb.get(`/search/movie?query=${query}`);
 
-export const searchActorsService = (query) =>
-  tmdb.get(`/search/person?query=${query}`);
-
 export const getMovieDetailsService = (movieId) =>
   tmdb.get(`/movie/${movieId}`);
 
@@ -59,3 +56,6 @@ export const getActorDetailsService = (actorId) =>
 
 export const getWatchProvidersService = (movieId) =>
   tmdb.get(`/movie/${movieId}/watch/providers`);
+
+export const getMovieReviewsService = (movieId) =>
+  tmdb.get(`/movie/${movieId}/reviews`);
