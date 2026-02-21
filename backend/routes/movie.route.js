@@ -7,11 +7,11 @@ import {
   upcomingMovies,
   nowPlayingMovies,
   searchMovies,
-  searchActors,
   movieDetails,
   castAndCrews,
   MovieTrailer,
   similarMovies,
+  movieReviews,
   RecommendedMovies,
   movieImages,
   actorDetails,
@@ -27,11 +27,11 @@ movieRouter.get("/top-rated", topRatedMovies);
 movieRouter.get("/upcoming", upcomingMovies);
 movieRouter.get("/now-playing", nowPlayingMovies);
 movieRouter.get("/search-movies", searchMovies);
-movieRouter.get("/search-actors", searchActors);
 movieRouter.get("/actor/:actorId",actorDetails);
 movieRouter.get("/:movieId/credits", castAndCrews);
 movieRouter.get("/:movieId/videos", MovieTrailer);
 movieRouter.get("/:movieId/similar",similarMovies);
+movieRouter.get("/:movieId/reviews",movieReviews)
 movieRouter.get("/:movieId/recommendations",RecommendedMovies);
 movieRouter.get("/:movieId/images",movieImages);
 movieRouter.get("/:movieId/providers",watchProviders);
