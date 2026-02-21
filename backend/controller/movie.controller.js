@@ -1,8 +1,21 @@
-import { getTrendingDaily, getTrendingWeekly, getPopularMovies, getTopRatedMovies,
-  getUpcomingMovies, getNowPlayingMovies, searchMoviesService, searchActorsService,
-  getMovieDetailsService, getCastAndCrewService, getMovieImagesService, getMovieVideosService,
-  getSimilarMoviesService, getRecommendationsService, getActorDetailsService, getWatchProvidersService
- } from "../services/tmbdService.js";
+import {
+  getTrendingDaily,
+  getTrendingWeekly,
+  getPopularMovies,
+  getTopRatedMovies,
+  getUpcomingMovies,
+  getNowPlayingMovies,
+  searchMoviesService,
+  getMovieDetailsService,
+  getCastAndCrewService,
+  getMovieImagesService,
+  getMovieReviewsService,
+  getMovieVideosService,
+  getSimilarMoviesService,
+  getRecommendationsService,
+  getActorDetailsService,
+  getWatchProvidersService,
+} from "../services/tmbdService.js";
 
 const trendingMoviesDaily = async (req, res) => {
   try {
@@ -126,7 +139,7 @@ const nowPlayingMovies = async (req, res) => {
 
 const searchMovies = async (req, res) => {
   try {
-    const { query } = req.body;
+    const { query } = req.query;
 
     if (!query) {
       return res.status(400).json({
@@ -137,46 +150,33 @@ const searchMovies = async (req, res) => {
 
     const { data } = await searchMoviesService(query);
 
-    if (data) {
+    if (data && data.results) {
+      const filteredMovies = data.results.filter((movie) => {
+        return (
+          movie.poster_path !== null && 
+          movie.backdrop_path !== null && 
+          movie.overview && movie.overview.trim().length > 0 &&
+          movie.release_date 
+        );
+      });
+
       return res.status(200).json({
         message: "Movies fetched Successfully",
-        movies: data.results,
+        movies: filteredMovies,
         success: true,
       });
     }
+
+    return res.status(404).json({
+      message: "No results found",
+      movies: [],
+      success: true,
+    });
+
   } catch (error) {
     console.log(error);
     return res.status(500).json({
       message: "Failed to fetch Movies",
-      success: false,
-    });
-  }
-};
-
-const searchActors = async (req, res) => {
-  try {
-    const { query } = req.body;
-
-    if (!query) {
-      return res.status(400).json({
-        message: "Search query is required",
-        success: false,
-      });
-    }
-
-    const { data } = await searchActorsService(query);
-
-    if (data) {
-      return res.status(200).json({
-        message: "Actors fetched Successfully",
-        actors: data.results,
-        success: true,
-      });
-    }
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      message: "Failed to fetch Actors",
       success: false,
     });
   }
@@ -392,6 +392,25 @@ const watchProviders = async (req, res) => {
   }
 };
 
+const movieReviews = async (req, res) => {
+  try {
+    const { movieId } = req.params;
+    const { data } = await getMovieReviewsService(movieId);
+
+    return res.status(200).json({
+      message: "Movie reviews fetched successfully",
+      reviews: data.results,
+      success: true,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Failed to fetch movie reviews",
+      success: false,
+    });
+  }
+};
+
 export {
   trendingMoviesDaily,
   trendingMoviesWeekly,
@@ -400,10 +419,10 @@ export {
   upcomingMovies,
   nowPlayingMovies,
   searchMovies,
-  searchActors,
   movieDetails,
   castAndCrews,
   MovieTrailer,
+  movieReviews,
   similarMovies,
   RecommendedMovies,
   movieImages,
