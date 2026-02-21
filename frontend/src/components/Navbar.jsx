@@ -1,14 +1,23 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { User, LogOut } from "lucide-react"; 
+import { User, LogOut, Search as SearchIcon } from "lucide-react"; 
 import logo from "../assets/logo.png";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const dropdownRef = useRef(null);
 
   const isLoggedIn = false; 
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${searchQuery}`);
+      setSearchQuery(""); 
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -19,6 +28,8 @@ const Navbar = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  
 
   const navLinkStyles = ({ isActive }) =>
     `relative px-4 py-2 text-sm font-medium transition-all duration-300 rounded-full ${
@@ -31,17 +42,29 @@ const Navbar = () => {
     <div className="fixed top-6 left-0 w-full flex justify-center z-50 px-4">
       <nav className="flex items-center justify-between w-full max-w-6xl bg-[#1e1d1d] backdrop-blur-md border border-gray-600 px-6 py-2.5 rounded-2xl">
         
-        {/* Left: Brand Logo */}
         <Link to="/" className="flex items-center gap-2.5 group">
           <img src={logo} width={150} alt="Logo" />
         </Link>
 
-        {/* Center: Nav Items */}
         <div className="hidden md:flex items-center gap-2">
           <NavLink to="/" className={navLinkStyles}>Home</NavLink>
           <NavLink to="/favourites" className={navLinkStyles}>Favourites</NavLink>
           <NavLink to="/watchlist" className={navLinkStyles}>Watchlist</NavLink>
         </div>
+
+        <form 
+          onSubmit={handleSearch}
+          className="hidden lg:flex items-center flex-1 max-w-md mx-8 relative group"
+        >
+          <SearchIcon className="absolute left-4 text-gray-500 group-focus-within:text-blue-500 transition-colors" size={18} />
+          <input 
+            type="text"
+            placeholder="Search movies..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-white/5 border border-white/10 py-2 pl-12 pr-4 rounded-full text-sm text-white focus:outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all"
+          />
+        </form>
 
         {/* Right: Auth Logic */}
         <div className="flex items-center gap-5">
@@ -54,7 +77,6 @@ const Navbar = () => {
             </button>
           ) : (
             <div className="relative" ref={dropdownRef}>
-              {/* Profile Icon Button */}
               <button
                 onClick={() => setShowDropdown(!showDropdown)}
                 className="flex items-center justify-center w-10 h-10 rounded-full bg-white/10 border border-white/20 hover:bg-white/20 transition-all overflow-hidden"
@@ -66,7 +88,6 @@ const Navbar = () => {
                 />
               </button>
 
-              {/* Dropdown Menu */}
               {showDropdown && (
                 <div className="absolute right-0 mt-3 w-48 bg-[#1e1d1d] border border-gray-600 rounded-xl shadow-2xl py-2 z-50 animate-in fade-in zoom-in duration-200">
                   <button
@@ -77,7 +98,7 @@ const Navbar = () => {
                   </button>
                   <hr className="my-1 border-gray-700" />
                   <button
-                    onClick={() => { /* Handle Logout */ setShowDropdown(false); }}
+                    onClick={() => {setShowDropdown(false); }}
                     className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
                   >
                     <LogOut size={16} /> Logout
