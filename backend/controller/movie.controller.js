@@ -12,6 +12,7 @@ import {
   getMovieReviewsService,
   getMovieVideosService,
   getSimilarMoviesService,
+  getActorMoviesService,
   getRecommendationsService,
   getActorDetailsService,
   getWatchProvidersService,
@@ -229,24 +230,41 @@ const MovieTrailer = async (req, res) => {
     const { movieId } = req.params;
     const { data } = await getMovieVideosService(movieId);
 
-    const result = data.results;
-    const officialTrailer = result.find(
-      (vid) => vid.type === "Trailer" && vid.official === true,
+    if (!data || !data.results || data.results.length === 0) {
+      return res.status(404).json({
+        message: "No videos found for this movie.",
+        success: false,
+      });
+    }
+
+    const results = data.results;
+
+    const officialTrailer = results.find(
+      (vid) => vid.type === "Trailer" && vid.site === "YouTube" && vid.official === true
     );
 
     const finalTrailer =
-      officialTrailer || result.find((vid) => vid.type === "Trailer");
+      officialTrailer || 
+      results.find((vid) => vid.type === "Trailer") || 
+      results.find((vid) => vid.type === "Teaser") ||
+      results[0]; 
 
-    if (data) {
-      return res.status(200).json({
-        message: "Movie Trailer fetched Successfully",
-        trailer: finalTrailer,
-        youtubeUrl: `https://www.youtube.com/watch?v=${finalTrailer.key}`,
-        success: true,
+    if (!finalTrailer || !finalTrailer.key) {
+      return res.status(404).json({
+        message: "No trailer or video key available for this movie.",
+        success: false,
       });
     }
+
+    return res.status(200).json({
+      message: "Movie Trailer fetched Successfully",
+      trailer: finalTrailer,
+      youtubeUrl: `https://www.youtube.com/watch?v=${finalTrailer.key}`,
+      success: true,
+    });
+
   } catch (error) {
-    console.log(error);
+    console.error("Trailer Error:", error);
     return res.status(500).json({
       message: "Failed to fetch Movie Trailer.",
       success: false,
@@ -361,6 +379,29 @@ const actorDetails = async (req, res) => {
   }
 };
 
+const getActorTopMovies = async (req, res) => {
+  try {
+    const { actorId } = req.params;
+    const {data} = await getActorMoviesService(actorId);
+
+    if (data && data.cast) {
+      const topMovies = data.cast
+        .filter(movie => movie.poster_path && movie.release_date)
+        .sort((a, b) => b.popularity - a.popularity)
+        .slice(0, 5);
+
+      return res.status(200).json({
+        success: true,
+        movies: topMovies,
+      });
+    }
+
+    return res.status(404).json({ success: false, message: "No movies found" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
 const watchProviders = async (req, res) => {
   try {
     const { movieId } = req.params;
@@ -427,5 +468,6 @@ export {
   RecommendedMovies,
   movieImages,
   actorDetails,
+  getActorTopMovies,
   watchProviders,
 };
