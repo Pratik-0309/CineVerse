@@ -53,7 +53,6 @@ const CastsList = ({ movieId }) => {
         </div>
       </section>
 
-      {/* Crew Section */}
       <section>
         <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight mb-8">Crew</h2>
         <div className="flex flex-col lg:flex-row items-start gap-10">
@@ -61,7 +60,6 @@ const CastsList = ({ movieId }) => {
             {crews.map((member) => (
               <div 
                 key={member.credit_id} 
-                onClick={() => navigate(`/actor/${member.id}`)}
                 className="min-w-120px md:min-w-140px text-center group cursor-pointer"
               >
                 <div className="w-24 h-24 md:w-28 md:h-28 mx-auto rounded-full overflow-hidden border-2 border-transparent group-hover:border-blue-500/50 transition-all duration-500 shadow-xl mb-4">
