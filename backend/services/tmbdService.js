@@ -52,6 +52,9 @@ export const getMovieImagesService = (movieId) =>
 
 
 export const getActorDetailsService = (actorId) =>
+  tmdb.get(`/person/${actorId}`);
+
+export const getActorMoviesService = (actorId) =>
   tmdb.get(`/person/${actorId}/movie_credits`);
 
 export const getWatchProvidersService = (movieId) =>
