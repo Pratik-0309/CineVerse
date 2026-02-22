@@ -14,6 +14,7 @@ import {
   movieReviews,
   RecommendedMovies,
   movieImages,
+  getActorTopMovies,
   actorDetails,
   watchProviders,
 } from "../controller/movie.controller.js";
@@ -28,6 +29,7 @@ movieRouter.get("/upcoming", upcomingMovies);
 movieRouter.get("/now-playing", nowPlayingMovies);
 movieRouter.get("/search-movies", searchMovies);
 movieRouter.get("/actor/:actorId",actorDetails);
+movieRouter.get("/actor/:actorId/movie",getActorTopMovies)
 movieRouter.get("/:movieId/credits", castAndCrews);
 movieRouter.get("/:movieId/videos", MovieTrailer);
 movieRouter.get("/:movieId/similar",similarMovies);
