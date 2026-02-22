@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
-import axiosInstance from '../utils/axiosInstance';
-import ReactPlayer from 'react-player';
-import { X } from 'lucide-react';
+import { useState, useEffect } from "react";
+import axiosInstance from "../utils/axiosInstance";
+import ReactPlayer from "react-player"; 
+import { X } from "lucide-react";
+import toast from "react-hot-toast";
 
 const TrailerModal = ({ movieId, onClose }) => {
   const [trailerUrl, setTrailerUrl] = useState("");
@@ -9,12 +10,15 @@ const TrailerModal = ({ movieId, onClose }) => {
   useEffect(() => {
     const getTrailer = async () => {
       try {
-        const { data } = await axiosInstance.get(`/api/movies/${movieId}/videos`);
+        const { data } = await axiosInstance.get(
+          `/api/movies/${movieId}/videos`,
+        );
         if (data.success && data.youtubeUrl) {
           setTrailerUrl(data.youtubeUrl);
         }
       } catch (error) {
-        console.error(error);
+        toast.error("No trailer available for this movie.");
+        setTrailerUrl(null);
       }
     };
     if (movieId) getTrailer();
@@ -22,15 +26,15 @@ const TrailerModal = ({ movieId, onClose }) => {
 
   if (!trailerUrl) return null;
 
+
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 md:p-10">
-      <div 
+      <div
         className="absolute inset-0 bg-black/90 backdrop-blur-md animate-in fade-in duration-300"
-        onClick={onClose} 
+        onClick={onClose}
       />
       <div className="relative w-full max-w-5xl aspect-video bg-black rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-white/10 animate-in zoom-in-95 duration-300">
-        
-        <button 
+        <button
           onClick={onClose}
           className="absolute top-4 right-4 z-[100] bg-black/60 hover:bg-pink-600 text-white p-2 rounded-full transition-all border border-white/10"
         >
@@ -46,12 +50,12 @@ const TrailerModal = ({ movieId, onClose }) => {
             controls={true}
             config={{
               youtube: {
-                playerVars: { 
-                  autoplay: 1, 
-                  modestbranding: 1, 
+                playerVars: {
+                  autoplay: 1,
+                  modestbranding: 1,
                   rel: 0,
-                }
-              }
+                },
+              },
             }}
           />
         </div>
