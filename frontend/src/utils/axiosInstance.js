@@ -24,7 +24,6 @@ axiosInstance.interceptors.response.use(
 
     const isAuthRoute =
   originalRequest?.url?.includes("/api/user/refresh-token") ||
-  originalRequest?.url?.includes("/api/user/profile") ||
   originalRequest?.url?.includes("/api/user/logout");
 
     if (
