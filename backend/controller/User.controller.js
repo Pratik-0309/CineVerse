@@ -2,10 +2,12 @@ import User from "../model/User.model.js";
 import jwt from "jsonwebtoken";
 import uploadOnCloudinary from "../config/cloudinary.js";
 
+const isProduction = process.env.NODE_ENV === "production";
+
 const options = {
   httpOnly: true,
-  secure: true,
-  sameSite: "None",
+  secure: isProduction,
+  sameSite: isProduction ? "None" : "Lax",
   path: "/",
 };
 
@@ -67,7 +69,7 @@ const refreshAccessToken = async (req, res) => {
       });
     }
 
-    const { accessToken, refreshToken } = generateAccessRefreshToken(user._id);
+    const { accessToken, refreshToken } = await generateAccessRefreshToken(user._id);
 
     return res
       .status(200)
@@ -111,7 +113,7 @@ const registerUser = async (req, res) => {
       password,
     });
 
-    const { accessToken, refreshToken } = generateAccessRefreshToken(user._id);
+    const { accessToken, refreshToken } = await generateAccessRefreshToken(user._id);
 
     return res
       .status(201)
@@ -157,7 +159,7 @@ const loginUser = async (req, res) => {
       });
     }
 
-    const { accessToken, refreshToken } = generateAccessRefreshToken(user._id);
+    const { accessToken, refreshToken } = await generateAccessRefreshToken(user._id);
 
     const loggedInUser = await User.findById(user._id).select(
       " -password -refreshToken",
@@ -187,7 +189,7 @@ const updateProfile = async (req, res) => {
     const profilePic = req.file;
     const userId = req.user._id;
 
-    if (!userName || !profilePic) {
+    if (!userName && !profilePic) {
       return res
         .status(400)
         .json({ message: "At least one field is required to update profile" });
@@ -231,6 +233,30 @@ const updateProfile = async (req, res) => {
   }
 };
 
+const userProfile = async (req,res) => {
+  try {
+    const userId = req.user._id;
+    const loggedInuser = await User.findById(userId).select(
+      "-password -refreshToken"
+    );
+
+    if (!loggedInuser) {
+      return res.status(404).json({ 
+        message: "User not found",
+        success: false
+       });
+    }
+
+    return res.status(200).json({
+      user: loggedInuser,
+      success: true
+    });
+  } catch (error) {
+     console.error(error);
+    return res.status(500).json({ message: error.message });
+  }
+}
+
 const logoutUser = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -260,4 +286,4 @@ const logoutUser = async (req, res) => {
   }
 };
 
-export { refreshAccessToken, registerUser, loginUser };
+export { refreshAccessToken, registerUser, loginUser, updateProfile, logoutUser, userProfile};
