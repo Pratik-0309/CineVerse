@@ -1,11 +1,9 @@
 import jwt from "jsonwebtoken";
 import User from "../model/User.model.js";
 
-const verifyAuth = async (req, res) => {
+  const verifyAuth = async (req, res, next) => {
   try {
-    const token =
-      req.cookies?.accessToken ||
-      req.headers("Authorization")?.replace("Bearer ", "");
+    const token = req.cookies.accessToken;
 
     if (!token) {
       return res.status(401).json({ message: "No token provided" });
@@ -29,7 +27,6 @@ const verifyAuth = async (req, res) => {
     if (error.name === "TokenExpiredError") {
       return res.status(401).json({ success: false, message: "Token expired" });
     }
-    console.error("Authentication error:", error);
     return res
       .status(401)
       .json({ success: false, message: "Internal server error" });
