@@ -7,9 +7,9 @@ const reviewRouter = express.Router();
 reviewRouter.use(verifyAuth);
 
 reviewRouter.post("/add/:movieId",addReview);
-reviewRouter.post("/edit/:reviewId", editReview);
-reviewRouter.post("/delete/:reviewId", deleteReview);
-reviewRouter.post("/movie/:movieId", getMoviesReviews);
-reviewRouter.post("/user", getUserReviews);
+reviewRouter.put("/edit/:reviewId", editReview);
+reviewRouter.delete("/delete/:reviewId", deleteReview);
+reviewRouter.get("/movie/:movieId", getMoviesReviews);
+reviewRouter.get("/user", getUserReviews);
 
 export default reviewRouter;
