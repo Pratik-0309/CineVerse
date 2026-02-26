@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import axiosInstance from "../utils/axiosInstance.js";
 import { useParams } from "react-router-dom";
 import Loader from "../components/Loader.jsx";
@@ -10,37 +10,52 @@ import ReviewsList from "../components/ReviewList.jsx";
 import { Play, Star, Heart, Bookmark, Clock, Calendar } from "lucide-react";
 import toast from "react-hot-toast";
 import { formatDuration } from "../utils/formatDuration.js";
+import MovieNotFound from "./MovieNotFound.jsx";
 
 const MovieDetails = () => {
   const { movieId } = useParams();
+
   const [movie, setMovie] = useState(null);
+  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [reviewLoading, setReviewLoading] = useState(true);
   const [showTrailer, setShowTrailer] = useState(false);
 
-  useEffect(() => {
-    const fetchMovieDetails = async () => {
-      try {
-        setLoading(true);
-        const { data } = await axiosInstance.get(`/api/movies/${movieId}`);
-        if (data.success) setMovie(data.movies);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchMovieDetails();
-  }, [movieId]);
-
-  const handleAction = (type) => {
-    toast.success(`Added to ${type}!`, {
-      style: { background: "#1c1c1c", color: "#fff", border: "1px solid #333" },
-    });
+  const fetchMovieDetails = async () => {
+    try {
+      setLoading(true);
+      const { data } = await axiosInstance.get(`/api/movies/${movieId}`);
+      if (data.success) setMovie(data.movies);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  const fetchReviews = useCallback(async () => {
+    try {
+      setReviewLoading(true);
+      const { data } = await axiosInstance.get(
+        `/api/review/movie/${movieId}`
+      );
+      if (data.success) {
+        setReviews(data.reviews);
+      }
+    } catch (error) {
+      console.error("Review fetch error:", error);
+    } finally {
+      setReviewLoading(false);
+    }
+  }, [movieId]);
+
+  useEffect(() => {
+    fetchMovieDetails();
+    fetchReviews();
+  }, [movieId, fetchReviews]);
+
   if (loading) return <Loader />;
-  if (!movie)
-    return <div className="pt-32 text-center text-white">Movie not found.</div>;
+  if (!movie) return <MovieNotFound />;
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -137,8 +152,16 @@ const MovieDetails = () => {
         <SimilarMovies movieId={movieId} />
         <div className="max-w-4xl mt-2">
           {" "}
-          <ReviewForm movieId={movieId} />
-          <ReviewsList movieId={movieId} />
+           <ReviewForm
+          movieId={movieId}
+          onReviewAdded={fetchReviews}
+        />
+
+        <ReviewsList
+          reviews={reviews}
+          loading={reviewLoading}
+          onRefresh={fetchReviews}
+        />
         </div>
       </div>
 
