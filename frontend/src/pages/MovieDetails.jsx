@@ -1,25 +1,40 @@
 import React, { useEffect, useState, useCallback } from "react";
 import axiosInstance from "../utils/axiosInstance.js";
 import { useParams } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
 import Loader from "../components/Loader.jsx";
 import CastsList from "../components/CastsList.jsx";
 import TrailerModal from "../components/TrailerModal.jsx";
 import SimilarMovies from "../components/SimilarMovies.jsx";
 import ReviewForm from "../components/ReviewForm.jsx";
 import ReviewsList from "../components/ReviewList.jsx";
-import { Play, Star, Heart, Bookmark, Clock, Calendar } from "lucide-react";
+import {
+  Play,
+  Star,
+  Heart,
+  Bookmark,
+  Clock,
+  Calendar,
+  Loader2,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import { formatDuration } from "../utils/formatDuration.js";
 import MovieNotFound from "./MovieNotFound.jsx";
 
 const MovieDetails = () => {
   const { movieId } = useParams();
+  const { isLoggedIn } = useAuth();
 
   const [movie, setMovie] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [reviewLoading, setReviewLoading] = useState(true);
   const [showTrailer, setShowTrailer] = useState(false);
+
+  const [watchlistLoading, setWatchlistLoading] = useState(false);
+  const [favouriteLoading, setFavouriteLoading] = useState(false);
+  const [isInWatchlist, setIsInWatchlist] = useState(false);
+  const [isInFavourites, setIsInFavourites] = useState(false);
 
   const fetchMovieDetails = async () => {
     try {
@@ -36,9 +51,7 @@ const MovieDetails = () => {
   const fetchReviews = useCallback(async () => {
     try {
       setReviewLoading(true);
-      const { data } = await axiosInstance.get(
-        `/api/review/movie/${movieId}`
-      );
+      const { data } = await axiosInstance.get(`/api/review/movie/${movieId}`);
       if (data.success) {
         setReviews(data.reviews);
       }
@@ -49,10 +62,92 @@ const MovieDetails = () => {
     }
   }, [movieId]);
 
+  const addToWatchlist = async () => {
+    if (!isLoggedIn)
+      return toast.error("Please log in to manage your watchlist.");
+
+    try {
+      setWatchlistLoading(true);
+      const { data } = await axiosInstance.post(
+        `/api/watchlist/update/${movieId}`,
+        {
+          title: movie.title,
+          poster_path: movie.poster_path,
+          release_date: movie.release_date,
+          vote_average: movie.vote_average,
+        },
+      );
+
+      if (data.success) {
+        toast.success(data.message);
+        setIsInWatchlist(data.added);
+      }
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Failed to update watchlist",
+      );
+    } finally {
+      setWatchlistLoading(false);
+    }
+  };
+
+  const addToFavourite = async () => {
+    if (!isLoggedIn)
+      return toast.error("Please log in to manage your favourites.");
+
+    try {
+      setFavouriteLoading(true);
+      const { data } = await axiosInstance.post(
+        `/api/favourite/update/${movieId}`,
+        {
+          title: movie.title,
+          poster_path: movie.poster_path,
+          release_date: movie.release_date,
+          vote_average: movie.vote_average,
+        },
+      );
+
+      if (data.success) {
+        toast.success(data.message);
+        setIsInFavourites(data.added);
+      }
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Failed to update favourites",
+      );
+    } finally {
+      setFavouriteLoading(false);
+    }
+  };
+
+  const checkInitialStatus = useCallback(async () => {
+    if (!isLoggedIn) return;
+    try {
+      const [watchlistRes, favsRes] = await Promise.all([
+        axiosInstance.get("/api/watchlist"),
+        axiosInstance.get("/api/favourite"),
+      ]);
+
+      if (watchlistRes.data.success) {
+        setIsInWatchlist(
+          watchlistRes.data.watchlists.some((m) => m.movieId === movieId),
+        );
+      }
+      if (favsRes.data.success) {
+        setIsInFavourites(
+          favsRes.data.favourites.some((m) => m.movieId === movieId),
+        );
+      }
+    } catch (error) {
+      console.error("Error checking movie status", error);
+    }
+  }, [movieId, isLoggedIn]);
+
   useEffect(() => {
     fetchMovieDetails();
     fetchReviews();
-  }, [movieId, fetchReviews]);
+    checkInitialStatus();
+  }, [movieId, fetchReviews, checkInitialStatus]);
 
   if (loading) return <Loader />;
   if (!movie) return <MovieNotFound />;
@@ -108,19 +203,41 @@ const MovieDetails = () => {
               </button>
 
               <button
-                onClick={() => handleAction("Watchlist")}
-                className="p-3 bg-white/10 hover:bg-white/20 rounded-xl border border-white/10 transition-all"
-                title="Add to Watchlist"
+                onClick={addToWatchlist}
+                disabled={watchlistLoading}
+                className="p-3 bg-white/10 hover:bg-white/20 rounded-xl border border-white/10 transition-all disabled:opacity-50"
+                title={
+                  isInWatchlist ? "Remove from Watchlist" : "Add to Watchlist"
+                }
               >
-                <Bookmark size={22} />
+                {watchlistLoading ? (
+                  <Loader2 className="animate-spin" size={22} />
+                ) : (
+                  <Bookmark
+                    size={22}
+                    className={`transition-colors ${isInWatchlist ? "text-blue-500 fill-blue-500" : "text-white"}`}
+                  />
+                )}
               </button>
 
               <button
-                onClick={() => handleAction("Favourites")}
-                className="p-3 bg-white/10 hover:bg-white/20 rounded-xl border border-white/10 transition-all text-white"
-                title="Add to Favourites"
+                onClick={addToFavourite}
+                disabled={favouriteLoading}
+                className="p-3 bg-white/10 hover:bg-white/20 rounded-xl border border-white/10 transition-all disabled:opacity-50"
+                title={
+                  isInFavourites
+                    ? "Remove from Favourites"
+                    : "Add to Favourites"
+                }
               >
-                <Heart size={22} />
+                {favouriteLoading ? (
+                  <Loader2 className="animate-spin" size={22} />
+                ) : (
+                  <Heart
+                    size={22}
+                    className={`transition-colors ${isInFavourites ? "text-red-500 fill-red-500" : "text-white"}`}
+                  />
+                )}
               </button>
             </div>
 
@@ -152,16 +269,12 @@ const MovieDetails = () => {
         <SimilarMovies movieId={movieId} />
         <div className="max-w-4xl mt-2">
           {" "}
-           <ReviewForm
-          movieId={movieId}
-          onReviewAdded={fetchReviews}
-        />
-
-        <ReviewsList
-          reviews={reviews}
-          loading={reviewLoading}
-          onRefresh={fetchReviews}
-        />
+          <ReviewForm movieId={movieId} onReviewAdded={fetchReviews} />
+          <ReviewsList
+            reviews={reviews}
+            loading={reviewLoading}
+            onRefresh={fetchReviews}
+          />
         </div>
       </div>
 
