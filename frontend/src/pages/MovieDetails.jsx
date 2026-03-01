@@ -143,6 +143,13 @@ const MovieDetails = () => {
     }
   }, [movieId, isLoggedIn]);
 
+  const handleWatchTrailer = () => {
+  if (!isLoggedIn) {
+    return toast.error("Please log in to watch the trailer");
+  }
+  setShowTrailer(true);
+};
+
   useEffect(() => {
     fetchMovieDetails();
     fetchReviews();
@@ -196,7 +203,7 @@ const MovieDetails = () => {
 
             <div className="flex flex-wrap gap-4 pt-4">
               <button
-                onClick={() => setShowTrailer(true)}
+                onClick={handleWatchTrailer}
                 className="flex items-center gap-2 bg-blue-500 hover:bg-blue-800 text-white px-6 py-3 rounded-xl font-bold transition-all"
               >
                 <Play size={18} fill="currentColor" /> Watch Trailer
