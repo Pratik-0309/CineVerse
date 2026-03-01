@@ -41,7 +41,6 @@ axiosInstance.interceptors.response.use(
 
         return axiosInstance(originalRequest);
       } catch (refreshError) {
-        window.location.href = "/register";
         return Promise.reject(refreshError);
       }
     }
