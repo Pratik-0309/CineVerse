@@ -23,14 +23,14 @@ function App() {
       <Toaster />
       <main className={hideLayout ? "" : "pt-10"}>
         <Routes>
-          <Route path="/" ele ment={<Home/>} />
+          <Route path="/" element={<Home/>} />
           <Route path="/register" element={<Register/>} />
           <Route path="/profile" element={<Profile/>} />
           <Route path="/search" element={<Search/>} />
           <Route path="/watchlist" element={<WatchList/>} />
           <Route path="/favourites" element={<Favourites/>} />
-          <Route path="/movie/:id" element={<MovieDetails/>} />
-          <Route path="/actor/:id" element={<ActorDetails/>} />
+          <Route path="/movie/:movieId" element={<MovieDetails/>} />
+          <Route path="/actor/:actorId" element={<ActorDetails/>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         </main>
