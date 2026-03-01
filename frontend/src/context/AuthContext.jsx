@@ -17,12 +17,13 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  useEffect(() => {
-    checkAuthStatus();
-  }, []);
-
-
   const checkAuthStatus = async () => {
+
+    if (window.location.pathname === '/register') {
+       setLoading(false);
+       return;
+    }
+
     try {
       const res = await axiosInstance.get("/api/user/profile");
       if (res.data.success) {
@@ -37,6 +38,11 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     }
   };
+  
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
 
   const login = (user) => {
     setUser(user);
