@@ -18,15 +18,16 @@ import {
   actorDetails,
   watchProviders,
 } from "../controller/movie.controller.js";
+import { cacheMiddleware } from "../middleware/cache.js";
 
 const movieRouter = express.Router();
 
-movieRouter.get("/trending/day", trendingMoviesDaily);
-movieRouter.get("/trending/week", trendingMoviesWeekly);
-movieRouter.get("/popular", popularMovies);
-movieRouter.get("/top-rated", topRatedMovies);
-movieRouter.get("/upcoming", upcomingMovies);
-movieRouter.get("/now-playing", nowPlayingMovies);
+movieRouter.get("/trending/day", cacheMiddleware("trending:daily", 180 ),trendingMoviesDaily);
+movieRouter.get("/trending/week",cacheMiddleware("trending:weekly", 180 ), trendingMoviesWeekly);
+movieRouter.get("/popular",cacheMiddleware("movies:popular", 180 ), popularMovies);
+movieRouter.get("/top-rated",cacheMiddleware("movies:topRated", 180 ), topRatedMovies);
+movieRouter.get("/upcoming",cacheMiddleware("movies:upcoming", 180 ), upcomingMovies);
+movieRouter.get("/now-playing",cacheMiddleware("movies:nowPlaying", 180 ), nowPlayingMovies);
 movieRouter.get("/search-movies", searchMovies);
 movieRouter.get("/actor/:actorId",actorDetails);
 movieRouter.get("/actor/:actorId/movie",getActorTopMovies)
