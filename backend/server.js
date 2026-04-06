@@ -14,7 +14,7 @@ dotenv.config();
 const app = express();
 
 app.use(cors({
-  origin: ['http://localhost:5173','https://cineverse-git-main-pratik-parates-projects.vercel.app'],
+  origin: ['http://localhost:5173','https://frontend-ochre-ten-18.vercel.app'],
   credentials: true 
 }));
 
