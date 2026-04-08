@@ -20,15 +20,25 @@ const Home = () => {
     const fetchAllData = async () => {
       setLoading(true);
       try {
-        const [nowPlaying, upcoming, topRated, popular, daily, weekly] =
-          await Promise.all([
-            axiosInstance.get("/api/movies/now-playing"),
-            axiosInstance.get("/api/movies/upcoming"),
-            axiosInstance.get("/api/movies/top-rated"),
-            axiosInstance.get("/api/movies/popular"),
-            axiosInstance.get("/api/movies/trending/day"),
-            axiosInstance.get("/api/movies/trending/week"),
-          ]);
+        const nowPlaying = await axiosInstance.get("/api/movies/now-playing");
+        setNowPlayingMovies(
+          nowPlaying.data.success ? nowPlaying.data.movies : [],
+        );
+
+        const upcoming = await axiosInstance.get("/api/movies/upcoming");
+        setUpcomingMovies(upcoming.data.success ? upcoming.data.movies : []);
+
+        const topRated = await axiosInstance.get("/api/movies/top-rated");
+        setTopRatedMovies(topRated.data.success ? topRated.data.movies : []);
+
+        const popular = await axiosInstance.get("/api/movies/popular");
+        setPopularMovies(popular.data.movies || []);
+
+        const daily = await axiosInstance.get("/api/movies/trending/day");
+        setTrendingDaily(daily.data.success ? daily.data.movies : []);
+
+        const weekly = await axiosInstance.get("/api/movies/trending/week");
+        setTrendingWeekly(weekly.data.success ? weekly.data.movies : []);
 
         setNowPlayingMovies(
           nowPlaying.data.success ? nowPlaying.data.movies : [],
@@ -107,8 +117,12 @@ const Home = () => {
                       )
                     }
                   >
-                    <option className="bg-black font-semibold">Weekly Top</option>
-                    <option className="bg-black font-semibold">Today Top</option>
+                    <option className="bg-black font-semibold">
+                      Weekly Top
+                    </option>
+                    <option className="bg-black font-semibold">
+                      Today Top
+                    </option>
                   </select>
 
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
@@ -121,7 +135,7 @@ const Home = () => {
             <div className="flex flex-col gap-4 sm:grid sm:grid-cols-2 lg:flex lg:flex-col">
               {activeTrending.slice(0, 8).map((movie, index) => (
                 <div
-                  onClick={()=> navigate(`/movie/${movie.id}`)}
+                  onClick={() => navigate(`/movie/${movie.id}`)}
                   key={movie.id}
                   className="flex items-center gap-4 sm:gap-6 group cursor-pointer border-b border-white/5 pb-6 last:border-0 hover:bg-white/5 p-2 rounded-xl transition-all"
                 >
