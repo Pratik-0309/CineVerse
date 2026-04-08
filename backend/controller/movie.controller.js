@@ -18,6 +18,7 @@ import {
   getWatchProvidersService,
 } from "../services/tmbdService.js";
 
+const delay = (ms) => new Promise((res) => setTimeout(res, ms));
 const trendingMoviesDaily = async (req, res) => {
   try {
     const { data } = await getTrendingDaily();
@@ -40,19 +41,25 @@ const trendingMoviesDaily = async (req, res) => {
 
 const trendingMoviesWeekly = async (req, res) => {
   try {
+    console.log("API HIT");
+
     const { data } = await getTrendingWeekly();
 
-    if (data) {
-      return res.status(200).json({
-        message: "Trending Movies fetched Successfully",
-        movies: data.results,
-        success: true,
-      });
-    }
+    return res.status(200).json({
+      movies: data.results,
+      success: true,
+    });
   } catch (error) {
-    console.log(error);
+    console.log("ERROR:", error.message);
+
+    if (error.response) {
+      console.log("TMDB ERROR:", error.response.data);
+    } else {
+      console.log("NO RESPONSE → NETWORK ISSUE");
+    }
+
     return res.status(500).json({
-      message: "Failed to fetch Movies",
+      message: "Failed",
       success: false,
     });
   }
@@ -122,17 +129,17 @@ const nowPlayingMovies = async (req, res) => {
   try {
     const { data } = await getNowPlayingMovies();
 
-    if (data) {
-      return res.status(200).json({
-        message: "Now-Playing Movies fetched Successfully",
-        movies: data.results,
-        success: true,
-      });
-    }
+    await delay(200); // ✅ IMPORTANT
+
+    res.status(200).json({
+      movies: data.results,
+      success: true,
+    });
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      message: "Failed to fetch Now Playing Movies",
+    console.log("ERROR:", error.message);
+
+    res.status(500).json({
+      message: "Failed",
       success: false,
     });
   }
@@ -154,10 +161,11 @@ const searchMovies = async (req, res) => {
     if (data && data.results) {
       const filteredMovies = data.results.filter((movie) => {
         return (
-          movie.poster_path !== null && 
-          movie.backdrop_path !== null && 
-          movie.overview && movie.overview.trim().length > 0 &&
-          movie.release_date 
+          movie.poster_path !== null &&
+          movie.backdrop_path !== null &&
+          movie.overview &&
+          movie.overview.trim().length > 0 &&
+          movie.release_date
         );
       });
 
@@ -173,7 +181,6 @@ const searchMovies = async (req, res) => {
       movies: [],
       success: true,
     });
-
   } catch (error) {
     console.log(error);
     return res.status(500).json({
@@ -240,14 +247,17 @@ const MovieTrailer = async (req, res) => {
     const results = data.results;
 
     const officialTrailer = results.find(
-      (vid) => vid.type === "Trailer" && vid.site === "YouTube" && vid.official === true
+      (vid) =>
+        vid.type === "Trailer" &&
+        vid.site === "YouTube" &&
+        vid.official === true,
     );
 
     const finalTrailer =
-      officialTrailer || 
-      results.find((vid) => vid.type === "Trailer") || 
+      officialTrailer ||
+      results.find((vid) => vid.type === "Trailer") ||
       results.find((vid) => vid.type === "Teaser") ||
-      results[0]; 
+      results[0];
 
     if (!finalTrailer || !finalTrailer.key) {
       return res.status(404).json({
@@ -262,7 +272,6 @@ const MovieTrailer = async (req, res) => {
       youtubeUrl: `https://www.youtube.com/watch?v=${finalTrailer.key}`,
       success: true,
     });
-
   } catch (error) {
     console.error("Trailer Error:", error);
     return res.status(500).json({
@@ -382,11 +391,11 @@ const actorDetails = async (req, res) => {
 const getActorTopMovies = async (req, res) => {
   try {
     const { actorId } = req.params;
-    const {data} = await getActorMoviesService(actorId);
+    const { data } = await getActorMoviesService(actorId);
 
     if (data && data.cast) {
       const topMovies = data.cast
-        .filter(movie => movie.poster_path && movie.release_date)
+        .filter((movie) => movie.poster_path && movie.release_date)
         .sort((a, b) => b.popularity - a.popularity)
         .slice(0, 5);
 
